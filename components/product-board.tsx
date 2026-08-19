@@ -88,7 +88,7 @@ export function ProductBoard({
     const productKey = addKey.trim() || slugify(addForm.name);
     const parsed = parseProductForm(addForm);
     if (!productKey || !parsed) {
-      setError("Completa nombre, descripción, imagen por defecto y orden.");
+      setError("Completa nombre, descripción y orden.");
       return;
     }
 
@@ -114,7 +114,7 @@ export function ProductBoard({
     if (!editProduct || !editForm) return;
     const parsed = parseProductForm(editForm);
     if (!parsed) {
-      setError("Completa nombre, descripción, imagen por defecto y orden.");
+      setError("Completa nombre, descripción y orden.");
       return;
     }
 
