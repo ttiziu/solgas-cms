@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { listSiteProducts, listSites } from "@/lib/backend";
+import { listSites } from "@/lib/backend";
 import { ProductBoard } from "@/components/product-board";
 
 export default async function SiteProductsPage({
@@ -14,15 +14,12 @@ export default async function SiteProductsPage({
     notFound();
   }
 
-  const products = await listSiteProducts(current.slug);
-
   return (
     <div className="mx-auto w-full max-w-6xl px-1">
       <ProductBoard
         siteSlug={current.slug}
         siteName={current.name}
         sitePublicUrl={current.publicUrl}
-        initialProducts={products}
       />
     </div>
   );

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { getApiUrl } from "@/lib/env";
 import { getSessionToken } from "@/lib/session";
 
@@ -20,7 +21,7 @@ export async function backendFetch(path: string, init: RequestInit = {}): Promis
   });
 }
 
-export async function getAuthenticatedUser(): Promise<{ username: string } | null> {
+export const getAuthenticatedUser = cache(async (): Promise<{ username: string } | null> => {
   const token = await getSessionToken();
   if (!token) {
     return null;
@@ -32,7 +33,7 @@ export async function getAuthenticatedUser(): Promise<{ username: string } | nul
   }
 
   return (await response.json()) as { username: string };
-}
+});
 
 export type CmsSite = {
   slug: string;
@@ -40,13 +41,13 @@ export type CmsSite = {
   publicUrl: string | null;
 };
 
-export async function listSites(): Promise<CmsSite[]> {
+export const listSites = cache(async (): Promise<CmsSite[]> => {
   const response = await backendFetch("/api/sites");
   if (!response.ok) {
     return [];
   }
   return (await response.json()) as CmsSite[];
-}
+});
 
 export type BackendStoreProduct = {
   key: string;

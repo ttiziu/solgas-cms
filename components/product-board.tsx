@@ -11,7 +11,13 @@ import {
   uploadProductImage,
 } from "@/lib/api";
 import { ProductSortableGrid } from "@/components/product-sortable-grid";
+import { ProductBoardSkeleton } from "@/components/product-board-skeleton";
 import { compressProductImage } from "@/lib/compress-image";
+import {
+  useInvalidateSiteProducts,
+  useSetSiteProducts,
+  useSiteProducts,
+} from "@/hooks/use-site-products";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -35,7 +41,6 @@ type ProductBoardProps = {
   siteSlug: string;
   siteName: string;
   sitePublicUrl: string | null;
-  initialProducts: StoreProduct[];
 };
 
 function slugify(value: string): string {
@@ -51,9 +56,11 @@ export function ProductBoard({
   siteSlug,
   siteName,
   sitePublicUrl,
-  initialProducts,
 }: ProductBoardProps) {
-  const [products, setProducts] = useState(initialProducts);
+  const { data: products = [], isLoading, isError } = useSiteProducts(siteSlug);
+  const invalidateProducts = useInvalidateSiteProducts();
+  const setProducts = useSetSiteProducts();
+
   const [error, setError] = useState<string | null>(null);
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -62,7 +69,7 @@ export function ProductBoard({
 
   const [addKey, setAddKey] = useState("");
   const [addForm, setAddForm] = useState<ProductFormValues>(() =>
-    emptyProductFormValues(initialProducts.length + 1)
+    emptyProductFormValues(1)
   );
   const [editForm, setEditForm] = useState<ProductFormValues | null>(null);
 
@@ -92,7 +99,7 @@ export function ProductBoard({
         productKey,
         ...parsed,
       });
-      setProducts((prev) => [...prev, created].sort((a, b) => a.sortOrder - b.sortOrder));
+      setProducts(siteSlug, (prev) => [...prev, created].sort((a, b) => a.sortOrder - b.sortOrder));
       setAddKey("");
       setAddForm(emptyProductFormValues(products.length + 2));
       setAddOpen(false);
@@ -115,10 +122,10 @@ export function ProductBoard({
     setError(null);
     try {
       const updated = await updateProduct(siteSlug, editProduct.key, parsed);
-      setProducts((prev) =>
+      setProducts(siteSlug, (prev) =>
         prev
           .map((p) => (p.key === updated.key ? updated : p))
-          .sort((a, b) => a.sortOrder - b.sortOrder)
+          .sort((a, b) => a.sortOrder - b.sortOrder),
       );
       closeEdit();
     } catch (e) {
@@ -135,7 +142,7 @@ export function ProductBoard({
     setError(null);
     try {
       await deleteProduct(siteSlug, key);
-      setProducts((prev) => prev.filter((p) => p.key !== key));
+      setProducts(siteSlug, (prev) => prev.filter((p) => p.key !== key));
       setDeleteProductTarget(null);
       if (editProduct?.key === key) closeEdit();
     } catch (e) {
@@ -157,7 +164,7 @@ export function ProductBoard({
         sortOrder: product.sortOrder,
         active,
       });
-      setProducts((prev) => prev.map((p) => (p.key === updated.key ? updated : p)));
+      setProducts(siteSlug, (prev) => prev.map((p) => (p.key === updated.key ? updated : p)));
     } catch (e) {
       setError(e instanceof Error ? e.message : "No se pudo actualizar la visibilidad.");
     } finally {
@@ -166,8 +173,7 @@ export function ProductBoard({
   }
 
   async function handleReorder(nextProducts: StoreProduct[]) {
-    const previous = products;
-    setProducts(nextProducts);
+    setProducts(siteSlug, nextProducts);
     setBusyKey("__reorder__");
     setError(null);
     try {
@@ -176,7 +182,7 @@ export function ProductBoard({
         nextProducts.map((product) => product.key),
       );
     } catch (e) {
-      setProducts(previous);
+      await invalidateProducts(siteSlug);
       setError(e instanceof Error ? e.message : "No se pudo guardar el orden.");
     } finally {
       setBusyKey(null);
@@ -189,7 +195,7 @@ export function ProductBoard({
     try {
       const compressed = await compressProductImage(file);
       const updated = await uploadProductImage(siteSlug, productKey, compressed);
-      setProducts((prev) => prev.map((p) => (p.key === productKey ? updated : p)));
+      setProducts(siteSlug, (prev) => prev.map((p) => (p.key === productKey ? updated : p)));
     } catch (e) {
       setError(e instanceof Error ? e.message : "No se pudo subir la imagen.");
     } finally {
@@ -203,12 +209,16 @@ export function ProductBoard({
     setError(null);
     try {
       const updated = await deleteProductImage(siteSlug, product.cmsImageId, product.key);
-      setProducts((prev) => prev.map((p) => (p.key === product.key ? updated : p)));
+      setProducts(siteSlug, (prev) => prev.map((p) => (p.key === product.key ? updated : p)));
     } catch (e) {
       setError(e instanceof Error ? e.message : "No se pudo quitar la imagen.");
     } finally {
       setBusyKey(null);
     }
+  }
+
+  if (isLoading && products.length === 0) {
+    return <ProductBoardSkeleton />;
   }
 
   return (
@@ -225,6 +235,12 @@ export function ProductBoard({
           Agregar producto
         </Button>
       </div>
+
+      {isError ? (
+        <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          No se pudo cargar el catálogo. Recarga la página o intenta de nuevo en unos segundos.
+        </p>
+      ) : null}
 
       {error ? (
         <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
