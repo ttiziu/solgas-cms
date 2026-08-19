@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronRightIcon, GlobeIcon, LogOutIcon, PackageIcon } from "lucide-react";
@@ -29,21 +29,9 @@ import {
 export function AppSidebar({ username, sites }: { username: string; sites: CmsSite[] }) {
   const pathname = usePathname();
   const inSitios = pathname.startsWith("/sitios");
-  const [sitiosOpen, setSitiosOpen] = useState(inSitios);
-  const [openBySlug, setOpenBySlug] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(sites.map((site) => [site.slug, pathname.startsWith(`/sitios/${site.slug}`)])),
-  );
-
-  useEffect(() => {
-    if (inSitios) {
-      setSitiosOpen(true);
-    }
-    const active = sites.find((site) => pathname.startsWith(`/sitios/${site.slug}`));
-    if (!active) {
-      return;
-    }
-    setOpenBySlug((current) => ({ ...current, [active.slug]: true }));
-  }, [inSitios, pathname, sites]);
+  const [sitiosManualOpen, setSitiosManualOpen] = useState(false);
+  const sitiosOpen = inSitios || sitiosManualOpen;
+  const [manualOpenBySlug, setManualOpenBySlug] = useState<Record<string, boolean>>({});
 
   return (
     <Sidebar>
@@ -63,7 +51,7 @@ export function AppSidebar({ username, sites }: { username: string; sites: CmsSi
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              <Collapsible open={sitiosOpen} onOpenChange={setSitiosOpen} className="group/sitios">
+              <Collapsible open={sitiosOpen} onOpenChange={setSitiosManualOpen} className="group/sitios">
                 <SidebarMenuItem>
                   <CollapsibleTrigger render={<SidebarMenuButton isActive={inSitios} />}>
                     <GlobeIcon />
@@ -76,12 +64,16 @@ export function AppSidebar({ username, sites }: { username: string; sites: CmsSi
                         const productsHref = `/sitios/${site.slug}/productos`;
                         const siteActive = pathname.startsWith(`/sitios/${site.slug}`);
 
+                        const siteOpen =
+                          pathname.startsWith(`/sitios/${site.slug}`) ||
+                          (manualOpenBySlug[site.slug] ?? false);
+
                         return (
                           <Collapsible
                             key={site.slug}
-                            open={openBySlug[site.slug] ?? false}
+                            open={siteOpen}
                             onOpenChange={(open) =>
-                              setOpenBySlug((current) => ({ ...current, [site.slug]: open }))
+                              setManualOpenBySlug((current) => ({ ...current, [site.slug]: open }))
                             }
                             className="group/site"
                           >

@@ -51,7 +51,8 @@ async function request(path: string, init: RequestInit = {}): Promise<Response> 
   });
 
   if (response.status === 401) {
-    window.location.assign("/login");
+    // Redirige al login fuera del ciclo de render del cliente.
+    globalThis.location.replace("/login");
     throw new Error("Sesión expirada. Vuelve a iniciar sesión.");
   }
 

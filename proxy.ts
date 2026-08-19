@@ -4,7 +4,16 @@ import { SESSION_COOKIE } from "@/lib/session-cookie";
 
 export function proxy(request: NextRequest) {
   const session = request.cookies.get(SESSION_COOKIE)?.value;
-  const isLogin = request.nextUrl.pathname === "/login";
+  const { pathname } = request.nextUrl;
+  const isLogin = pathname === "/login";
+  const isApi = pathname.startsWith("/api/");
+
+  if (isApi) {
+    if (!session) {
+      return NextResponse.json({ message: "No autorizado" }, { status: 401 });
+    }
+    return NextResponse.next();
+  }
 
   if (!session && !isLogin) {
     return NextResponse.redirect(new URL("/login", request.url));
@@ -19,6 +28,7 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|assets/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/api/:path*",
+    "/((?!_next/static|_next/image|favicon.ico|assets/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

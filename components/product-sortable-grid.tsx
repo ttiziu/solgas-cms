@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import {
   DndContext,
   type DragEndEvent,
@@ -128,6 +128,14 @@ function SortableProductGrid({
   );
 }
 
+function useClientMounted(): boolean {
+  return useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
+}
+
 export function ProductSortableGrid({
   products,
   sitePublicUrl,
@@ -136,11 +144,7 @@ export function ProductSortableGrid({
   onReorder,
   getCardProps,
 }: ProductSortableGridProps) {
-  const [sortableReady, setSortableReady] = useState(false);
-
-  useEffect(() => {
-    setSortableReady(true);
-  }, []);
+  const sortableReady = useClientMounted();
 
   const globalBusy = reordering || busyKey === "__reorder__";
 

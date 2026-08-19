@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useState } from "react";
 import { loginAction, type LoginState } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,13 +10,6 @@ const initialState: LoginState = { error: null };
 export function LoginForm() {
   const [state, formAction, pending] = useActionState(loginAction, initialState);
   const [showPassword, setShowPassword] = useState(false);
-  const [username, setUsername] = useState("");
-
-  useEffect(() => {
-    if (state.preservedUsername) {
-      setUsername(state.preservedUsername);
-    }
-  }, [state.preservedUsername]);
 
   return (
     <form action={formAction} noValidate className="flex flex-col gap-4">
@@ -30,8 +23,8 @@ export function LoginForm() {
           type="text"
           autoComplete="username"
           required
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          key={state.preservedUsername ?? "login-username"}
+          defaultValue={state.preservedUsername ?? ""}
           aria-required="true"
           aria-invalid={!!state.username}
           aria-describedby={state.username ? "username-error" : state.error ? "login-error" : undefined}
