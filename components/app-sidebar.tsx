@@ -36,14 +36,14 @@ export function AppSidebar({ username, sites }: { username: string; sites: CmsSi
   return (
     <Sidebar>
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
-        <Link href="/" className="flex items-center">
+        <Link href="/" className="flex items-center justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/assets/images/logo.svg"
+            src="/assets/images/logo2.svg"
             alt="Solgas"
-            width={185}
-            height={34}
-            className="h-7 w-auto brightness-0 invert"
+            width={200}
+            height={56}
+            className="h-9 w-auto max-w-full object-contain"
           />
         </Link>
       </SidebarHeader>

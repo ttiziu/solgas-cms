@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import { getAuthenticatedUser, listSites } from "@/lib/backend";
 import { AppSidebar } from "@/components/app-sidebar";
 import { QueryProvider } from "@/components/query-provider";
-import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
@@ -25,13 +24,12 @@ export default async function CmsLayout({
     <QueryProvider>
       <SidebarProvider>
         <AppSidebar username={user.username} sites={sites} />
-        <SidebarInset>
-          <header className="flex h-14 items-center gap-3 border-b border-border bg-card/70 px-4">
-            <SidebarTrigger />
-            <Separator orientation="vertical" className="h-5" />
-            <p className="text-sm text-muted-foreground">Panel de administración</p>
+        <SidebarInset className="bg-background">
+          <header className="flex h-14 items-center gap-2.5 border-b border-border bg-card/90 px-4 backdrop-blur-sm">
+            <SidebarTrigger className="text-primary hover:bg-accent hover:text-accent-foreground" />
+            <p className="text-sm font-medium text-foreground/80">Panel de administración</p>
           </header>
-          <div className="flex-1 p-6 md:p-8">{children}</div>
+          <div className="flex-1 bg-background p-6 md:p-8">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </QueryProvider>

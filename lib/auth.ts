@@ -22,7 +22,7 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
     return { error: null, username: "Ingresa el usuario." };
   }
   if (!password) {
-    return { error: null, password: "Ingresa la contraseña." };
+    return { error: null, password: "Ingresa la contraseña.", preservedUsername: username };
   }
 
   let response: Response;
